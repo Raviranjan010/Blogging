@@ -1,1 +1,501 @@
-<h1>Blogging platform</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Editorial Engine — Stories with Gravity</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,800;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- DESIGN SYSTEM TOKENS --- */
+        :root {
+            --bg-cream: #F9F6F0;
+            --ink-black: #1A1715;
+            --terracotta: #C85A32;
+            --moss-green: #3A4F41;
+            --border-line: #1A1715;
+            --font-serif: 'Playfair Display', Georgia, serif;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* --- GLOBAL RESETS --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-cream);
+            color: var(--ink-black);
+            font-family: var(--font-sans);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* --- HEADER / NAVIGATION --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 2px solid var(--border-line);
+        }
+
+        .logo {
+            font-family: var(--font-serif);
+            font-weight: 800;
+            font-size: 1.75rem;
+            letter-spacing: -0.5px;
+        }
+
+        nav a {
+            font-weight: 500;
+            margin-left: 2rem;
+            font-size: 0.95rem;
+            position: relative;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            transform: scaleX(0);
+            height: 1px;
+            bottom: -4px;
+            left: 0;
+            background-color: var(--ink-black);
+            transform-origin: bottom right;
+            transition: transform 0.25s ease-out;
+        }
+
+        nav a:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            border-bottom: 2px solid var(--border-line);
+            min-height: calc(85vh - 75px);
+        }
+
+        .hero-left {
+            padding: 5rem 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 2px solid var(--border-line);
+        }
+
+        .hero h1 {
+            font-family: var(--font-serif);
+            font-size: clamp(3rem, 5vw, 5.5rem);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -1px;
+            margin-bottom: 2rem;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            max-width: 540px;
+            margin-bottom: 3rem;
+            color: rgba(26, 23, 21, 0.85);
+        }
+
+        /* Unique Premium Button Pattern */
+        .cta-btn {
+            display: inline-block;
+            background: var(--ink-black);
+            color: var(--bg-cream);
+            padding: 1.25rem 2.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            width: fit-content;
+            border: 2px solid var(--ink-black);
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .cta-btn:hover {
+            background: var(--bg-cream);
+            color: var(--ink-black);
+            box-shadow: 6px 6px 0px var(--moss-green);
+            transform: translate(-4px, -4px);
+        }
+
+        .hero-right {
+            background-color: #F1ECE3;
+            padding: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Tactile Dynamic Card Stack Instead of UI Mockup */
+        .card-stack {
+            position: relative;
+            width: 320px;
+            height: 420px;
+        }
+
+        .card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--border-line);
+            background: white;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: var(--transition);
+        }
+
+        .card-tag {
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            color: var(--terracotta);
+        }
+
+        .card-title {
+            font-family: var(--font-serif);
+            font-size: 1.8rem;
+            line-height: 1.2;
+            margin-top: 1rem;
+        }
+
+        .card-meta {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        /* Stack offsets */
+        .card:nth-child(1) { transform: rotate(-3deg); z-index: 3; background-color: #FFF; }
+        .card:nth-child(2) { transform: rotate(2deg) translate(10px, 10px); z-index: 2; background-color: #FBF9F6; }
+        .card:nth-child(3) { transform: rotate(-1deg) translate(20px, 20px); z-index: 1; background-color: #F5F1E9; }
+
+        /* Interactivity: Cards fan out like physical media on wrapper hover */
+        .card-stack:hover .card:nth-child(1) { transform: rotate(-6deg) translate(-25px, -15px); }
+        .card-stack:hover .card:nth-child(2) { transform: rotate(4deg) translate(20px, 5px); }
+        .card-stack:hover .card:nth-child(3) { transform: rotate(12deg) translate(55px, 25px); }
+
+
+        /* --- THE ANTI-TEMPLATE GRID --- */
+        .grid-section {
+            padding: 5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-family: var(--font-sans);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-label::after {
+            content: '';
+            height: 2px;
+            flex-grow: 1;
+            background: var(--border-line);
+        }
+
+        /* Asymmetric Layout Layout */
+        .magazine-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .grid-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 2.5rem;
+            border-top: 2px solid var(--border-line);
+            padding-top: 3rem;
+        }
+
+        .post-card .meta {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--terracotta);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .post-card h3 {
+            font-family: var(--font-serif);
+            font-size: 2.2rem;
+            line-height: 1.15;
+            margin-bottom: 1rem;
+        }
+
+        .post-card p {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            opacity: 0.8;
+        }
+
+        .post-card.featured h3 {
+            font-size: 3.5rem;
+        }
+
+        .post-card.quote-block {
+            background-color: var(--moss-green);
+            color: var(--bg-cream);
+            padding: 2.5rem;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .post-card.quote-block h3 {
+            font-family: var(--font-serif);
+            font-style: italic;
+            font-size: 1.75rem;
+            font-weight: 400;
+        }
+
+        /* --- TICKER / SOCIAL PROOF --- */
+        .ticker-wrap {
+            width: 100%;
+            overflow: hidden;
+            background: var(--ink-black);
+            color: var(--bg-cream);
+            padding: 1.5rem 0;
+            border-top: 2px solid var(--border-line);
+            border-bottom: 2px solid var(--border-line);
+        }
+
+        .ticker {
+            display: inline-block;
+            white-space: nowrap;
+            padding-right: 100%;
+            animation: ticker 25s linear infinite;
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+        }
+
+        .ticker span {
+            display: inline-block;
+            padding: 0 3rem;
+        }
+
+        @keyframes ticker {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+
+        /* --- THE INK FOOTER --- */
+        footer {
+            background: var(--ink-black);
+            color: var(--bg-cream);
+            padding: 6rem 4rem 2rem 4rem;
+            margin-top: 5rem;
+        }
+
+        .footer-main {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            margin-bottom: 6rem;
+        }
+
+        .footer-logo {
+            font-family: var(--font-serif);
+            font-size: clamp(4rem, 8vw, 9rem);
+            font-weight: 800;
+            line-height: 0.8;
+            letter-spacing: -4px;
+            opacity: 0.15;
+            user-select: none;
+        }
+
+        .footer-right {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .footer-col h4 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+            color: var(--terracotta);
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col li {
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            opacity: 0.7;
+            transition: var(--transition);
+        }
+
+        .footer-col li:hover {
+            opacity: 1;
+            transform: translateX(4px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(249, 246, 240, 0.1);
+            padding-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            opacity: 0.5;
+        }
+
+        /* --- RESPONSIVE FIXES --- */
+        @media (max-width: 968px) {
+            .hero { grid-template-columns: 1fr; }
+            .hero-left { border-right: none; border-bottom: 2px solid var(--border-line); padding: 3rem 1.5rem; }
+            .hero-right { padding: 5rem 2rem; }
+            .magazine-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .grid-row-2 { grid-template-columns: 1fr; }
+            .footer-main { grid-template-columns: 1fr; gap: 4rem; }
+            .post-card.featured h3 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">The Engine.</div>
+        <nav>
+            <a href="#explore">Explore</a>
+            <a href="#manifesto">Manifesto</a>
+            <a href="#write" class="cta-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-left: 1.5rem;">Start Ink</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-left">
+                <h1>Stories with gravity. For minds that don’t skim.</h1>
+                <p>A pristine canvas for independent publishing. No predictive algorithms, no invasive tracking, no ad-clutter—just pure ink and influence.</p>
+                <div class="cta-btn">Claim Your Canvas</div>
+            </div>
+            <div class="hero-right">
+                <div class="card-stack">
+                    <div class="card">
+                        <span class="card-tag">01 / CULTURE</span>
+                        <h2 class="card-title">The Architecture of Quiet Environments</h2>
+                        <span class="card-meta">By Julian Vance &middot; 9 min read</span>
+                    </div>
+                    <div class="card">
+                        <span class="card-tag">02 / TECHNOLOGY</span>
+                        <h2 class="card-title">Why the Text Editor is the Ultimate Interface</h2>
+                        <span class="card-meta">By Maya Lin &middot; 14 min read</span>
+                    </div>
+                    <div class="card">
+                        <span class="card-tag">03 / PHILOSOPHY</span>
+                        <h2 class="card-title">The Loss of Ephemeral Conversations</h2>
+                        <span class="card-meta">By Dr. Aris Thorne &middot; 6 min read</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid-section" id="explore">
+            <div class="section-label">Selected Journals</div>
+            
+            <div class="magazine-grid">
+                <div class="post-card featured">
+                    <div class="meta">Featured Issue &middot; Philosophy</div>
+                    <h3>We automated the rhythm, but we lost the melody.</h3>
+                    <p>An extensive, cross-disciplinary study into how optimization cycles completely stripped contemporary creative writing of its signature human imperfections...</p>
+                </div>
+                <div class="post-card">
+                    <div class="meta">Design / Architecture</div>
+                    <h3>Brutalist web portals and the return to plain structural markup.</h3>
+                    <p>Why modern developers are deliberately abandoning heavy layout frame engines to seek refuge in high-contrast text systems and native browser architecture.</p>
+                </div>
+            </div>
+
+            <div class="grid-row-2">
+                <div class="post-card">
+                    <div class="meta">01 / Economy</div>
+                    <h3>The micro-patronage myth</h3>
+                    <p>Can real literature survive purely on decentralized reader micro-transactions without corporate backing?</p>
+                </div>
+                <div class="post-card quote-block">
+                    <h3>"The best things ever written were written because someone lacked an audience, not because they were optimizing for one."</h3>
+                </div>
+                <div class="post-card">
+                    <div class="meta">03 / Media</div>
+                    <h3>Rescuing the static archive</h3>
+                    <p>How we are engineering permanent digital typography systems that will remain totally legible 100 years from today.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="ticker-wrap">
+            <div class="ticker">
+                <span>"Finally, a digital space that treats essays like rare literature." — Cultured Tech</span>
+                <span>•</span>
+                <span>"The distraction-free writer feels like an elegant physical typewriter." — Independent Journalist</span>
+                <span>•</span>
+                <span>"No algorithms means pure creative agency." — Elena V.</span>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-main">
+            <div class="footer-logo">ENGINE</div>
+            <div class="footer-right">
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <ul>
+                        <li><a href="#">The Manifesto</a></li>
+                        <li><a href="#">The Text Editor</a></li>
+                        <li><a href="#">Open Pricing</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Systems</h4>
+                    <ul>
+                        <li><a href="#">Privacy Engine</a></li>
+                        <li><a href="#">Developer Core</a></li>
+                        <li><a href="#">Contact/Support</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>&copy; 2026 The Editorial Engine Corp. Built for permanence.</div>
+            <div>No trackers active.</div>
+        </div>
+    </footer>
+
+</body>
+</html>
