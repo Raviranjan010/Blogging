@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Canvas — Editorial Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- DESIGN SYSTEM TOKENS --- */
+        :root {
+            --bg-ink: #1A1715;
+            --text-cream: #F9F6F0;
+            --terracotta: #C85A32;
+            --muted-gray: rgba(249, 246, 240, 0.4);
+            --border-line: rgba(249, 246, 240, 0.15);
+            --font-serif: 'Playfair Display', Georgia, serif;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* --- GLOBAL RESETS --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-ink);
+            color: var(--text-cream);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- TOP MINIMAL CONTROL BAR --- */
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border-line);
+        }
+
+        .back-link {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--muted-gray);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-link:hover {
+            color: var(--text-cream);
+        }
+
+        .meta-status {
+            font-size: 0.85rem;
+            color: var(--muted-gray);
+            font-style: italic;
+        }
+
+        .publish-btn {
+            background: var(--text-cream);
+            color: var(--bg-ink);
+            border: 1px solid var(--text-cream);
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .publish-btn:hover {
+            background: transparent;
+            color: var(--text-cream);
+            box-shadow: 4px 4px 0px var(--terracotta);
+            transform: translate(-2px, -2px);
+        }
+
+        /* --- FOCUS CANVAS --- */
+        .canvas-container {
+            flex-grow: 1;
+            max-width: 740px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 6rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Text areas auto-resize and remove all standard input clutter */
+        .title-input {
+            font-family: var(--font-serif);
+            font-size: clamp(2.5rem, 4vw, 3.75rem);
+            font-weight: 700;
+            background: transparent;
+            border: none;
+            color: var(--text-cream);
+            outline: none;
+            resize: none;
+            line-height: 1.15;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        .title-input::placeholder {
+            color: rgba(249, 246, 240, 0.15);
+        }
+
+        .body-input {
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+            line-height: 1.75;
+            background: transparent;
+            border: none;
+            color: rgba(249, 246, 240, 0.9);
+            outline: none;
+            resize: none;
+            flex-grow: 1;
+            width: 100%;
+            min-height: 300px;
+        }
+
+        .body-input::placeholder {
+            color: rgba(249, 246, 240, 0.2);
+            font-style: italic;
+        }
+
+        /* --- DYNAMIC UTILITY UTILS (Contextual Toolbar) --- */
+        /* Instead of an annoying permanent toolbar, hints are subtly embedded at the bottom */
+        .editor-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(transparent, var(--bg-ink) 40%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(249, 246, 240, 0.05);
+        }
+
+        .word-count {
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            color: var(--muted-gray);
+            text-transform: uppercase;
+        }
+
+        .formatting-hints {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--muted-gray);
+        }
+
+        .formatting-hints span code {
+            background: rgba(249, 246, 240, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: var(--text-cream);
+            font-family: monospace;
+        }
+
+        /* Responsive spacing */
+        @media (max-width: 768px) {
+            .canvas-container { padding: 3rem 1rem; }
+            .editor-footer { display: none; } /* Kept completely clean on mobile */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Minimal Editor Controls -->
+    <header class="editor-header">
+        <a href="index.html" class="back-link">← Dashboard</a>
+        <div class="meta-status" id="save-status">Draft saved to local core</div>
+        <button class="publish-btn">Publish to Web</button>
+    </header>
+
+    <!-- The Minimalist Pure Writing Canvas -->
+    <div class="canvas-container">
+        <textarea 
+            class="title-input" 
+            placeholder="Untitled Essay" 
+            rows="1" 
+            oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+            
+        <textarea 
+            class="body-input" 
+            placeholder="Begin your manuscript here. Use standard markup elements natively..."
+            oninput="updateMetrics(this)"></textarea>
+    </div>
+
+    <!-- Contextual Information Anchor -->
+    <footer class="editor-footer">
+        <div class="word-count" id="word-count-display">0 words</div>
+        <div class="formatting-hints">
+            <span><code>#</code> Heading</span>
+            <span><code>**</code> Bold</span>
+            <span><code>*</code> Italic</span>
+            <span><code>&gt;</code> Blockquote</span>
+        </div>
+    </footer>
+
+    <!-- Simple, zero-dependency behavior script -->
+    <script>
+        function updateMetrics(textarea) {
+            // Simple Word Count Real-time calculation
+            const text = textarea.value.trim();
+            const words = text === "" ? 0 : text.split(/\s+/).length;
+            document.getElementById('word-count-display').innerText = `${words} words`;
+
+            // Simulating real-time local save trigger
+            const status = document.getElementById('save-status');
+            status.innerText = "Syncing manuscript...";
+            
+            clearTimeout(window.saveTimeout);
+            window.saveTimeout = setTimeout(() => {
+                status.innerText = "Draft saved to local core";
+            }, 800);
+        }
+    </script>
+
+</body>
+</html>
